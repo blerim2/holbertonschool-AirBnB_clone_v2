@@ -11,15 +11,20 @@ from models.city import City
 class State(BaseModel, Base):
     """ State class """
     __tablename__ = "states"
-    name = Column(String(128), nullable=False)
-    cities = relationship('City', backref='state',
-                          cascade='all, delete-orphan')
-    if getenv("HBNB_TYPE_STORAGE") != 'db':
-        @property
-        def cities(self):
-            list_of_cities = []
 
-            for key, value in storage.all(City).items():
-                if value.to_dict()['state_id'] == self.id:
-                    list_of_cities.append(value)
-            return list_of_cities
+    if getenv("HBNB_TYPE_STORAGE") == 'db':
+        """ db ==>  means let's go for SQLAlchemy logic"""
+        name = Column(String(128), nullable=False)
+        cities = relationship('City', backref='state',
+                          cascade='all, delete-orphan')
+    else:
+        name = ""
+
+    @property
+    def cities(self):
+        list_of_cities = []
+
+        for key, value in storage.all(City).items():
+            if value.to_dict()['state_id'] == self.id:
+                list_of_cities.append(value)
+        return list_of_cities
