@@ -15,8 +15,7 @@ class State(BaseModel, Base):
     if getenv("HBNB_TYPE_STORAGE") == 'db':
         """ db ==>  means let's go for SQLAlchemy logic"""
         name = Column(String(128), nullable=False)
-        cities = relationship('City', backref='state',
-                          cascade='all, delete-orphan')
+        cities = relationship('City', cascade='all, delete', backref='state')
     else:
         name = ""
 
@@ -24,7 +23,7 @@ class State(BaseModel, Base):
     def cities(self):
         list_of_cities = []
 
-        for key, value in storage.all(City).items():
-            if value.to_dict()['state_id'] == self.id:
-                list_of_cities.append(value)
+        for city in storage.all(City).values():
+            if city.state_id == self.id:
+                list_of_cities.append(city)
         return list_of_cities
