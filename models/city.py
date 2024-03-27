@@ -1,22 +1,27 @@
 #!/usr/bin/python3
-""" City Module for HBNB project """
-from sqlalchemy import Column, ForeignKey, String
+"""State class definitiont"""
+import models
 from models.base_model import BaseModel, Base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship, backref
+from models.city import City
+from os import getenv
 
 
-class City(BaseModel, Base):
-    """
-    >>City inherits from BaseModel and Base (respect the order)
-    >>class attribute __tablename__ -
-            represents the table name, cities
-    >>class attribute name
-            represents a column containing a string (128 characters)
-            cant be null
-    >>class attribute state_id
-            represents a column containing a string (60 characters)
-            cant be null
-            is a foreign key to states.id
-    """
-    __tablename__ = "cities"
-    name = Column(String(128), nullable=False)
-    state_id = Column(String(60), ForeignKey("states.id"), nullable=False)
+class State(BaseModel, Base):
+    """This is the class for State."""
+    __tablename__ = "states"
+    if getenv('HBNB_TYPE_STORAGE') == 'db':
+        name = Column(String(128), nullable=False)
+        cities = relationship("City", cascade="all, delete", backref="state")
+    else:
+        name = ""
+
+        @property
+        def cities(self):
+            """ Returns the list of City"""
+            the_cities = []
+            for c in models.storage.all(City).values():
+                if c.state_id == self.id:
+                    the_cities.append(c)
+            return the_cities
