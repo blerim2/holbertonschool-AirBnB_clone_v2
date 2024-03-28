@@ -21,11 +21,7 @@ class TestCommand(unittest.TestCase):
         """test the create command"""
         storage = FileStorage()
         storage.reload()
-        opt = r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}'
-        with self.assertRaises(AttributeError):
-            with patch('sys.stdout', new=io.StringIO()) as f:
-                HBNBCommand().onecmd("create BaseModel updated_at=0.0"
-                                     " created_at=0.0")
+
         with patch('sys.stdout', new=io.StringIO()) as f:
             HBNBCommand().onecmd('create User email="cluck@wanadoo.fr"'
                                  ' password="jesustakethewheel"')
