@@ -31,6 +31,7 @@ class test_fileStorage(unittest.TestCase):
     def test_new(self):
         """ New object is correctly added to __objects """
         new = BaseModel()
+        temp = None
         for obj in storage.all().values():
             temp = obj
         self.assertTrue(temp is obj)
