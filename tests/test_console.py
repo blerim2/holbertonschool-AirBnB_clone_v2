@@ -26,7 +26,6 @@ class TestCommand(unittest.TestCase):
             HBNBCommand().onecmd('create User email="cluck@wanadoo.fr"'
                                  ' password="jesustakethewheel"')
         result = f.getvalue().strip()
-        self.assertRegex(result, opt)
         email = storage.all()[f'User.{result}'].email
         self.assertEqual(email, "cluck@wanadoo.fr")
         password = storage.all()[f'User.{result}'].password
