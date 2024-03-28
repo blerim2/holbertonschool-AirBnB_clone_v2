@@ -13,11 +13,6 @@ class test_User(test_basemodel):
         self.name = "User"
         self.value = User
 
-    def test_first_name(self):
-        """ """
-        new = self.value()
-
-
     def test_last_name(self):
         """ """
         new = self.value()
@@ -27,8 +22,3 @@ class test_User(test_basemodel):
         """ """
         new = self.value()
     
-
-    def test_password(self):
-        """ """
-        new = self.value()
-
