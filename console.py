@@ -2,7 +2,6 @@
 """ Console Module """
 import cmd
 import sys
-import models
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -11,7 +10,47 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
-import shlex
+
+
+def is_val_string(val):
+    return val[0] == '"' and val[-1] == '"'
+
+
+def is_val_int(val):
+    try:
+        int(val)
+        return True
+    except ValueError:
+        return False
+
+
+def is_val_float(val):
+    try:
+        float(val)
+        return True
+    except ValueError:
+        return False
+
+
+def is_val_type_valid(val):
+    return any(
+        [func(val)
+         for func
+         in [is_val_string, is_val_int, is_val_float]]
+    )
+
+
+def parse_args_for_create(params_list):
+    kwargs = {}
+    for param in params_list:
+        if "=" in param and param[0] != "=" and param[-1] != "=":
+            k, v = param.split("=")
+            if is_val_type_valid(v):
+                # strip value of double quotes if any
+                if is_val_string(v):
+                    v = v.strip('"').replace("_", " ").replace('"', '\\"')
+                kwargs.update({k: v})
+    return kwargs
 
 
 class HBNBCommand(cmd.Cmd):
@@ -21,16 +60,16 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-               'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
-               'Review': Review
-              }
+        'BaseModel': BaseModel, 'User': User, 'Place': Place,
+        'State': State, 'City': City, 'Amenity': Amenity,
+        'Review': Review
+    }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
-             'number_rooms': int, 'number_bathrooms': int,
-             'max_guest': int, 'price_by_night': int,
-             'latitude': float, 'longitude': float
-            }
+        'number_rooms': int, 'number_bathrooms': int,
+        'max_guest': int, 'price_by_night': int,
+        'latitude': float, 'longitude': float
+    }
 
     def preloop(self):
         """Prints if isatty is false"""
@@ -96,7 +135,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_quit(self, command):
         """ Method to exit the HBNB console"""
-        raise SystemExit(0)
+        exit()
 
     def help_quit(self):
         """ Prints the help documentation for quit  """
@@ -115,41 +154,30 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def _key_value_parser(self, args):
-        """creates a dictionary from a list of strings"""
-        new_dict = {}
-        for arg in args:
-            if "=" in arg:
-                kvp = arg.split('=', 1)
-                key = kvp[0]
-                value = kvp[1]
-                if value[0] == value[-1] == '"':
-                    value = shlex.split(value)[0].replace('_', ' ')
-                else:
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        try:
-                            value = float(value)
-                        except Exception:
-                            continue
-                new_dict[key] = value
-        return new_dict
-
-    def do_create(self, arg):
-        """Creates a new instance of a class"""
-        args = arg.split()
-        if len(args) == 0:
+    def do_create(self, args):
+        """ Create an object of any class"""
+        if not args:
             print("** class name missing **")
-            return False
-        if args[0] in HBNBCommand.classes:
-            new_dict = self._key_value_parser(args[1:])
-            instance = HBNBCommand.classes[args[0]](**new_dict)
-        else:
+            return
+
+        tokens = args.split(" ")
+        classname = tokens[0]
+        params_list = tokens[1:]
+        kwargs = parse_args_for_create(params_list)
+
+        if classname not in HBNBCommand.classes:
             print("** class doesn't exist **")
-            return False
-        print(instance.id)
-        instance.save()
+            return
+
+        for k, v in kwargs.items():
+            if k in HBNBCommand.types:
+                kwargs[k] = HBNBCommand.types[k](v)
+            else:
+                kwargs[k] = v.strip('"')
+        new_instance = HBNBCommand.classes[classname](**kwargs)
+        print(new_instance.id)
+        # storage.save()
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -222,22 +250,23 @@ class HBNBCommand(cmd.Cmd):
         print("Destroys an individual instance of a class")
         print("[Usage]: destroy <className> <objectId>\n")
 
-    def do_all(self, arg):
-        """Prints string representations of instances"""
-        args = shlex.split(arg)
-        obj_list = []
-        if len(args) == 0:
-            obj_dict = models.storage.all()
-        elif args[0] in HBNBCommand.classes:
-            obj_dict = models.storage.all(HBNBCommand.classes[args[0]])
+    def do_all(self, args):
+        """ Shows all objects, or all objects of a class"""
+        print_list = []
+
+        if args:
+            args = args.split(' ')[0]  # remove possible trailing args
+            if args not in HBNBCommand.classes:
+                print("** class doesn't exist **")
+                return
+            for k, v in storage.all(HBNBCommand.classes.get(args)).items():
+                if k.split('.')[0] == args:
+                    print_list.append(v)
         else:
-            print("** class doesn't exist **")
-            return False
-        for key in obj_dict:
-            obj_list.append(str(obj_dict[key]))
-        print("[", end="")
-        print(", ".join(obj_list), end="")
-        print("]")
+            for k, v in storage.all().items():
+                print_list.append(v)
+
+        print(print_list)
 
     def help_all(self):
         """ Help information for the all command """
@@ -334,7 +363,7 @@ class HBNBCommand(cmd.Cmd):
                 if att_name in HBNBCommand.types:
                     att_val = HBNBCommand.types[att_name](att_val)
 
-                # update dictionary with name and value pair
+                # update dictionary with name, value pair
                 new_dict.__dict__.update({att_name: att_val})
 
         new_dict.save()  # save updates to file
@@ -346,5 +375,4 @@ class HBNBCommand(cmd.Cmd):
 
 
 if __name__ == "__main__":
-
     HBNBCommand().cmdloop()

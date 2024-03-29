@@ -12,9 +12,11 @@ class test_Amenity(test_basemodel):
         super().__init__(*args, **kwargs)
         self.name = "Amenity"
         self.value = Amenity
+        self.args = {
+            "name": ''
+        }
 
     def test_name2(self):
         """ """
-        new = self.value()
-        if new.name != None:
-            self.assertEqual(type(new.name), str)
+        new = self.value(**self.args)
+        self.assertEqual(type(new.name), str)

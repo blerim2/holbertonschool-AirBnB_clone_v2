@@ -1,15 +1,13 @@
--- Use the root user to perform administrative tasks
--- Create the 'hbnb_dev_db' database if it does not exist
+-- script that prepares a MySQL server for the project:
+
+-- A database hbnb_test_db
 CREATE DATABASE IF NOT EXISTS hbnb_test_db;
-
--- Create the 'hbnb_dev' user with the specified password if it does not exist
-CREATE USER IF NOT EXISTS 'hbnb_test'@'localhost' IDENTIFIED BY 'hbnb_test_pwd';
-
--- Grant all privileges on 'hbnb_dev_db' to 'hbnb_dev' user
+-- A new user hbnb_test (in localhost)
+-- The password of hbnb_test should be set to hbnb_test_pwd
+CREATE USER 'hbnb_test'@'localhost' IDENTIFIED BY 'hbnb_test_pwd';
+-- hbnb_test should have all privileges on the database hbnb_test_db (and only this database)
 GRANT ALL PRIVILEGES ON hbnb_test_db.* TO 'hbnb_test'@'localhost';
-
--- Grant SELECT privilege on 'performance_schema' to 'hbnb_dev' user
+-- hbnb_test should have SELECT privilege on the database performance_schema (and only this database)
 GRANT SELECT ON performance_schema.* TO 'hbnb_test'@'localhost';
-
--- Apply the changes made by the GRANT statements
+-- Flush privileges to apply changes
 FLUSH PRIVILEGES;

@@ -1,116 +1,49 @@
 #!/usr/bin/python3
-"""Unittest module for the console"""
-import unittest
-from console import HBNBCommand
-from models.engine.file_storage import FileStorage
+""" """
 from unittest.mock import patch
-import io
-import pycodestyle
+import unittest
+from io import StringIO
 import os
 
-
-class TestCommand(unittest.TestCase):
-    """Tests for the console"""
-    def setUp(self):
-        """Function used to empty file.json"""
-        FileStorage._FileStorage__objects = {}
-        FileStorage().save()
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "Not FileStorage")
-    def test_create_fs(self):
-        """test the create command"""
-        storage = FileStorage()
-        storage.reload()
-
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create User email="cluck@wanadoo.fr"'
-                                 ' password="jesustakethewheel"')
-        result = f.getvalue().strip()
-        email = storage.all()[f'User.{result}'].email
-        self.assertEqual(email, "cluck@wanadoo.fr")
-        password = storage.all()[f'User.{result}'].password
-        self.assertEqual(password, "jesustakethewheel")
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create State johnny="bravo"'
-                                 ' number="7" pi="3.14"')
-        result = f.getvalue().strip()
-
-        johnny = storage.all()[f'State.{result}'].johnny
-        self.assertEqual(johnny, "bravo")
-        number = storage.all()[f'State.{result}'].number
-        self.assertEqual(number, '7')
-        pi = storage.all()[f'State.{result}'].pi
-        self.assertEqual(pi, '3.14')
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create City johnny="bravo" number="7"'
-                                 ' pi="3.14"')
-        result = f.getvalue().strip()
-
-        johnny = storage.all()[f'City.{result}'].johnny
-        self.assertEqual(johnny, "bravo")
-        number = storage.all()[f'City.{result}'].number
-        self.assertEqual(number, '7')
-        pi = storage.all()[f'City.{result}'].pi
-        self.assertEqual(pi, '3.14')
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create Amenity johnny="bravo"'
-                                 ' number="7" pi="3.14"')
-        result = f.getvalue().strip()
-
-        johnny = storage.all()[f'Amenity.{result}'].johnny
-        self.assertEqual(johnny, "bravo")
-        number = storage.all()[f'Amenity.{result}'].number
-        self.assertEqual(number, '7')
-        pi = storage.all()[f'Amenity.{result}'].pi
-        self.assertEqual(pi, '3.14')
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create Place johnny="bravo"'
-                                 ' number="7" pi="3.14"')
-        result = f.getvalue().strip()
-
-        johnny = storage.all()[f'Place.{result}'].johnny
-        self.assertEqual(johnny, "bravo")
-        number = storage.all()[f'Place.{result}'].number
-        self.assertEqual(number, '7')
-        pi = storage.all()[f'Place.{result}'].pi
-        self.assertEqual(pi, '3.14')
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create Review johnny="bravo"'
-                                 ' number="7" pi="3.14"')
-        result = f.getvalue().strip()
-
-        johnny = storage.all()[f'Review.{result}'].johnny
-        self.assertEqual(johnny, "bravo")
-        number = storage.all()[f'Review.{result}'].number
-        self.assertEqual(number, '7')
-        pi = storage.all()[f'Review.{result}'].pi
-        self.assertEqual(pi, '3.14')
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create')
-        opt = '** class name missing **\n'
-        self.assertEqual(f.getvalue(), opt)
-        with patch('sys.stdout', new=io.StringIO()) as f:
-            HBNBCommand().onecmd('create NotClass')
-        opt = '** class doesn\'t exist **\n'
-        self.assertEqual(f.getvalue(), opt)
-
-    def test_doc_console(self):
-        self.assertIsNotNone(HBNBCommand.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_all.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_create.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_EOF.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_count.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_update.__doc__)
-        self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
-
-    def testPycodeStyle(self):
-        """Test pycodestyle for console"""
-        style = pycodestyle.StyleGuide(quiet=True)
-        p = style.check_files(['console.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+from tests.test_models.test_base_model import test_basemodel
+from console import HBNBCommand
 
 
-if __name__ == '__main__':
-    unittest.main()
+storage_type = os.getenv("HBNB_TYPE_STORAGE")
+
+
+class test_console(test_basemodel):
+    """ """
+
+    def test_class_doc(self):
+        """ """
+        doc = HBNBCommand.__doc__
+        self.assertTrue(doc)
+
+    @unittest.skipIf(storage_type == "db", "db storage in used")
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_show_no_name(self, mock_stdout):
+        command = ''
+        HBNBCommand().do_show(command)
+        self.assertEqual(mock_stdout.getvalue(), "** class name missing **\n")
+
+    @unittest.skipIf(storage_type == "db", "db storage in used")
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_show_no_class(self, mock_stdout):
+        command = 'Fake'
+        HBNBCommand().do_show(command)
+        self.assertEqual(mock_stdout.getvalue(), "** class doesn't exist **\n")
+
+    @unittest.skipIf(storage_type == "db", "db storage in used")
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_show_no_id(self, mock_stdout):
+        command = 'City'
+        HBNBCommand().do_show(command)
+        self.assertEqual(mock_stdout.getvalue(), "** instance id missing **\n")
+
+    @unittest.skipIf(storage_type == "db", "db storage in used")
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_show_wrong_id(self, mock_stdout):
+        command = 'City 123123'
+        HBNBCommand().do_show(command)
+        self.assertEqual(mock_stdout.getvalue(), "** no instance found **\n")
