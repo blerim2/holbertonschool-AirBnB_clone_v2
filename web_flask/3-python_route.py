@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+"""
+Module to initiate a flask app
+"""
+
+
 from flask import Flask
 
 
@@ -7,23 +12,35 @@ app = Flask(__name__)
 
 @app.route('/', strict_slashes=False)
 def hello_hbnb():
-    return("Hello HBNB!")
+    """
+    set route
+    """
+    return ("Hello HBNB!")
 
 
 @app.route('/hbnb', strict_slashes=False)
 def hbnb_1():
-    return("HBNB")
+    """
+    set route
+    """
+    return ("HBNB")
 
 
 @app.route('/c/<text>', strict_slashes=False)
 def hbnb_2(text):
-    return("C {}".format(text.replace("_", " ")))
+    """
+    set route
+    """
+    return ("C {}".format(text.replace("_", " ")))
 
 
 @app.route('/python/', strict_slashes=False, defaults={'text': 'is cool'})
 @app.route('/python/<text>', strict_slashes=False)
 def hbnb_3(text):
-    return("Python {}".format(text.replace("_", " ")))
+    """
+    set route
+    """
+    return ("Python {}".format(text.replace("_", " ")))
 
 
 if __name__ == '__main__':
