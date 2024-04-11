@@ -15,7 +15,7 @@ def hello_hbnb():
     """
     index route
     """
-    return("Hello HBNB!")
+    return ("Hello HBNB!")
 
 
 @app.route('/hbnb', strict_slashes=False)
@@ -23,7 +23,7 @@ def hbnb_1():
     """
     hbnb route
     """
-    return("HBNB")
+    return ("HBNB")
 
 
 if __name__ == '__main__':
